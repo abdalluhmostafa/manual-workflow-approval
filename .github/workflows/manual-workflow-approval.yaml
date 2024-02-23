@@ -32,7 +32,7 @@ jobs:
       - name: Send Google Chat Notification
         id: chat-notification
         run: |
-          curl --location --request POST ${{ secrets.GOOGLE_CHAT_WEBHOOK }} \
+          curl --location --request POST https://chat.googleapis.com/v1/spaces/AAAAXzaB_tQ/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=gFLtwYMJggmhSfqleeVAxOzhvA54LDLBhGoAywqEHHc \
             -H 'Content-Type: application/json' \
             --data-raw '{
               "text": "Approval required for JIT Access. Please click [here](https://github.com/abdalluhmostafa/manual-workflow-approval/actions/runs/${{ github.run_id }}) to approve or reject.",
