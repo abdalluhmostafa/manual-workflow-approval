@@ -33,7 +33,7 @@ jobs:
         id: chat-notification
         run: |
           curl --location --request POST ${{ secrets.GOOGLE_CHAT_WEBHOOK }} \
-            --header 'Content-Type: application/json' \
+            -H 'Content-Type: application/json' \
             --data-raw '{
               "text": "Approval required for JIT Access. Please click [here](https://github.com/abdalluhmostafa/manual-workflow-approval/actions/runs/${{ github.run_id }}) to approve or reject.",
               "cards": [
