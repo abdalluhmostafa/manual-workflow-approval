@@ -1,0 +1,114 @@
+name: Manual Approval Workflow
+
+on:
+  workflow_dispatch:
+    inputs:
+      EMAIL:
+        description: 'Enter the email address:'
+        required: true
+      ROLE:
+        description: 'Select the role:'
+        required: true
+        default: 'roles/hamada'
+      PROJECT_NAME:
+        description: 'Enter the project name:'
+        default: 'myprojecy'
+        required: false
+
+  workflow_run:
+    workflows: [Approval Workflow]
+    types:
+      - completed
+
+jobs:
+  authenticate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+
+      - name: Send Google Chat Notification
+        id: chat-notification
+        run: |
+          curl --location --request POST ${{ secrets.GOOGLE_CHAT_WEBHOOK }} \
+            --header 'Content-Type: application/json' \
+            --data-raw '{
+              "text": "Approval required for JIT Access. Please click [here](https://github.com/OWNER/REPO/actions/runs/${{ github.run_id }}) to approve or reject.",
+              "cards": [
+                {
+                  "sections": [
+                    {
+                      "widgets": [
+                        {
+                          "textParagraph": {
+                            "text": "EMAIL: ${{ github.event.inputs.EMAIL }}"
+                          }
+                        },
+                        {
+                          "textParagraph": {
+                            "text": "ROLE: ${{ github.event.inputs.ROLE }}"
+                          }
+                        },
+                        {
+                          "textParagraph": {
+                            "text": "PROJECT_NAME: ${{ github.event.inputs.PROJECT_NAME || 'Default Project' }}"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "header": "Actions",
+                      "widgets": [
+                        {
+                          "buttons": [
+                            {
+                              "textButton": {
+                                "text": "Approve",
+                                "onClick": {
+                                  "action": {
+                                    "actionMethodName": "approve"
+                                  }
+                                }
+                              }
+                            },
+                            {
+                              "textButton": {
+                                "text": "Reject",
+                                "onClick": {
+                                  "action": {
+                                    "actionMethodName": "reject"
+                                  }
+                                }
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }'
+
+  manual-approval:
+    needs: [authenticate]
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success'
+
+    steps:
+      - name: Request manual approval
+        uses: trstringer/manual-approval@v1
+        with:
+          github-token: ${{ secrets.G_TOKEN }}
+          reviewers: abdalluhmostafa
+
+  next-jobs:
+      needs: [manual-approval]
+      runs-on: ubuntu-latest
+      if: github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_commit.message == 'approve'
+
+      steps:
+        - name: Echo Hello World
+          run: echo 'Hello World'
