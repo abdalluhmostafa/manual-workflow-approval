@@ -32,66 +32,11 @@ jobs:
         id: chat-notification
         run: |
           payload='{
-            "text": "Approval required for JIT Access. Please click [here](https://github.com/abdalluhmostafa/manual-workflow-approval/actions/runs/${{ github.run_id }}) to approve or reject.",
-            "cards": [
-              {
-                "sections": [
-                  {
-                    "widgets": [
-                      {
-                        "textParagraph": {
-                          "text": "EMAIL: ${{ github.event.inputs.EMAIL }}"
-                        }
-                      },
-                      {
-                        "textParagraph": {
-                          "text": "ROLE: ${{ github.event.inputs.ROLE }}"
-                        }
-                      },
-                      {
-                        "textParagraph": {
-                          "text": "PROJECT_NAME: ${{ github.event.inputs.PROJECT_NAME || 'Default Project' }}"
-                        }
-                      }
-                    ]
-                  },
-                  {
-                    "header": "Actions",
-                    "widgets": [
-                      {
-                        "buttons": [
-                          {
-                            "textButton": {
-                              "text": "Approve",
-                              "onClick": {
-                                "action": {
-                                  "actionMethodName": "approve"
-                                }
-                              }
-                            }
-                          },
-                          {
-                            "textButton": {
-                              "text": "Reject",
-                              "onClick": {
-                                "action": {
-                                  "actionMethodName": "reject"
-                                }
-                              }
-                            }
-                          }
-                        ]
-                      }
-                    ]
-                  }
-                ]
-              }
-            ]
+            "text": "Hello, World!"
           }'
           curl --location --request POST ${{ secrets.GOOGLE_CHAT_WEBHOOK }} \
             --header 'Content-Type: application/json' \
             --data-raw "$payload"
-
   manual-approval:
     needs: [authenticate]
     runs-on: ubuntu-latest
