@@ -28,15 +28,68 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v2
 
-      - name: Send Google Chat Notification
+      - name: Google Chat Notification
         id: chat-notification
         run: |
-          payload='{
-            "text": "Hello, World!"
-          }'
-          curl --location --request POST ${{ secrets.GOOGLE_CHAT_WEBHOOK }} \
+          curl --location --request POST 'https://chat.googleapis.com/v1/spaces/AAAAXzaB_tQ/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=D-Lq8Z26AZ0oJ7u7UbBBz-0xnLXx0cyE5qeOpE3yS7M' \
             --header 'Content-Type: application/json' \
-            --data-raw "$payload"
+            --data-raw '{
+              "text": "Approval required for JIT Access. Please click [here](https://github.com/WhatsLab/devops/issues/${{ github.event.issue.number }}) to approve or reject.",
+              "cards": [
+                {
+                  "sections": [
+                    {
+                      "widgets": [
+                        {
+                          "textParagraph": {
+                            "text": "EMAIL: ${{ steps.prompt.outputs.EMAIL }}"
+                          }
+                        },
+                        {
+                          "textParagraph": {
+                            "text": "ROLE: ${{ steps.prompt.outputs.ROLE }}"
+                          }
+                        },
+                        {
+                          "textParagraph": {
+                            "text": "PROJECT_NAME: ${{ steps.prompt.outputs.PROJECT_NAME }}"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "header": "Actions",
+                      "widgets": [
+                        {
+                          "buttons": [
+                            {
+                              "textButton": {
+                                "text": "Approve",
+                                "onClick": {
+                                  "action": {
+                                    "actionMethodName": "approve"
+                                  }
+                                }
+                              }
+                            },
+                            {
+                              "textButton": {
+                                "text": "Reject",
+                                "onClick": {
+                                  "action": {
+                                    "actionMethodName": "reject"
+                                  }
+                                }
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }'
   manual-approval:
     needs: [authenticate]
     runs-on: ubuntu-latest
