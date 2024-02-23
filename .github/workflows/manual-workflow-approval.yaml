@@ -28,68 +28,71 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v2
 
-      - name: Google Chat Notification
+      - name: Send Google Chat Notification
         id: chat-notification
         run: |
-          curl --location --request POST 'https://chat.googleapis.com/v1/spaces/AAAAXzaB_tQ/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=D-Lq8Z26AZ0oJ7u7UbBBz-0xnLXx0cyE5qeOpE3yS7M' \
-            --header 'Content-Type: application/json' \
-            --data-raw '{
-              "text": "Approval required for JIT Access. Please click [here](https://github.com/WhatsLab/devops/issues/${{ github.event.issue.number }}) to approve or reject.",
-              "cards": [
-                {
-                  "sections": [
-                    {
-                      "widgets": [
-                        {
-                          "textParagraph": {
-                            "text": "EMAIL: ${{ steps.prompt.outputs.EMAIL }}"
-                          }
-                        },
-                        {
-                          "textParagraph": {
-                            "text": "ROLE: ${{ steps.prompt.outputs.ROLE }}"
-                          }
-                        },
-                        {
-                          "textParagraph": {
-                            "text": "PROJECT_NAME: ${{ steps.prompt.outputs.PROJECT_NAME }}"
-                          }
+          echo '{
+            "text": "Approval required for JIT Access. Please click [here](https://github.com/abdalluhmostafa/manual-workflow-approval/actions/runs/${{ github.run_id }}) to approve or reject.",
+            "cards": [
+              {
+                "sections": [
+                  {
+                    "widgets": [
+                      {
+                        "textParagraph": {
+                          "text": "EMAIL: ${{ github.event.inputs.EMAIL }}"
                         }
-                      ]
-                    },
-                    {
-                      "header": "Actions",
-                      "widgets": [
-                        {
-                          "buttons": [
-                            {
-                              "textButton": {
-                                "text": "Approve",
-                                "onClick": {
-                                  "action": {
-                                    "actionMethodName": "approve"
-                                  }
-                                }
-                              }
-                            },
-                            {
-                              "textButton": {
-                                "text": "Reject",
-                                "onClick": {
-                                  "action": {
-                                    "actionMethodName": "reject"
-                                  }
+                      },
+                      {
+                        "textParagraph": {
+                          "text": "ROLE: ${{ github.event.inputs.ROLE }}"
+                        }
+                      },
+                      {
+                        "textParagraph": {
+                          "text": "PROJECT_NAME: ${{ github.event.inputs.PROJECT_NAME || 'Default Project' }}"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "header": "Actions",
+                    "widgets": [
+                      {
+                        "buttons": [
+                          {
+                            "textButton": {
+                              "text": "Approve",
+                              "onClick": {
+                                "action": {
+                                  "actionMethodName": "approve"
                                 }
                               }
                             }
-                          ]
-                        }
-                      ]
-                    }
-                  ]
-                }
-              ]
-            }'
+                          },
+                          {
+                            "textButton": {
+                              "text": "Reject",
+                              "onClick": {
+                                "action": {
+                                  "actionMethodName": "reject"
+                                }
+                              }
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }' > payload.json
+
+          curl --location --request POST ${{ secrets.GOOGLE_CHAT_WEBHOOK }} \
+            --header 'Content-Type: application/json' \
+            --data "@payload.json"
+
   manual-approval:
     needs: [authenticate]
     runs-on: ubuntu-latest
